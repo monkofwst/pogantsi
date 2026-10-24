@@ -4,7 +4,10 @@
 
 metrics.parquet из вашего сообщения уже включён в data/metrics.parquet. Для цвета укажите существующую users_scored.parquet или users_scored.csv из того же расчёта. Гипотезы пересчитывать не нужно.
 
-python prepare_behaviour.py data/users_scores.parquet - для получения данных в формате .csv (файл слишком большой, на гитхаб не загрузить) !!!
+```bash
+python prepare_behaviour.py data/users_scores.parquet - для получения данных в формате .csv
+```
+(файл .csv слишком большой, на гитхаб не загрузить) !!!
 
 В папке распакованного приложения:
 
