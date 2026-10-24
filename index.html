@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#070b13" />
+    <title>PARALLAX / Yoyoflot Observatory</title>
+    <link rel="stylesheet" href="styles.css?v=0.1.9" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">✳</div>
+          <div>
+            <strong>PARALLAX<span class="slash"> / </span>OBSERVATORY</strong
+            ><small>YOYOFLOT · BEHAVIORAL RESEARCH SYSTEM</small>
+          </div>
+        </div>
+        <div class="topcenter">
+          <span class="pulse"></span> SYSTEM ONLINE <span class="separator">/</span>
+          <span id="dataset-name">SYNTHETIC DATASET</span>
+        </div>
+        <div class="topactions">
+          <span id="fps" class="fps">— FPS</span
+          ><button id="import-btn" class="action outline">↥ <span>ИМПОРТ CSV</span></button
+          ><button id="fullscreen-btn" class="square" title="Полный экран">⛶</button>
+        </div>
+      </header>
+      <div class="workspace">
+        <aside class="sidebar">
+          <div class="side-heading">INSTRUMENTS <span>01—04</span></div>
+          <button class="nav active" data-tab="observatory">
+            <span class="nav-icon">◎</span
+            ><span><b>Обсерватория</b><small>3D-пространство</small></span
+            ><span class="nav-num">01</span></button
+          ><button class="nav" data-tab="ranking">
+            <span class="nav-icon">≋</span
+            ><span><b>Аномалии</b><small>Рейтинг профилей</small></span
+            ><span class="nav-num">02</span></button
+          ><button class="nav" data-tab="chronicle">
+            <span class="nav-icon">▤</span
+            ><span><b>Хроника</b><small>История перелётов</small></span
+            ><span class="nav-num">03</span></button
+          ><button class="nav" data-tab="data">
+            <span class="nav-icon">⌘</span
+            ><span><b>Данные</b><small>Источники и загрузка</small></span
+            ><span class="nav-num">04</span>
+          </button>
+          <div class="side-divider"></div>
+          <div class="side-heading">ОБЗОР ДАННЫХ</div>
+          <div class="stat"><label>ПРОФИЛЕЙ</label><strong id="stat-profiles">—</strong></div>
+          <div class="stat">
+            <label>ВЫСОКАЯ АНОМАЛЬНОСТЬ <span>≥ 0.80</span></label
+            ><strong class="orange" id="stat-flagged">—</strong>
+          </div>
+          <div class="stat">
+            <label>ПОЗИЦИЙ В ПРОСТРАНСТВЕ</label><strong id="stat-clusters">—</strong>
+          </div>
+          <div class="side-bottom">
+            <div class="tiny-dot"></div>
+            <div>
+              DEMO MODE <span>v 0.1.9</span
+              ><small>Синтетические данные не доказывают подозрительность пассажиров.</small>
+            </div>
+          </div>
+        </aside>
+        <main class="main">
+          <section class="view visible" id="observatory-view">
+            <div class="canvas-wrapper" id="canvas-wrapper">
+              <canvas id="space" aria-label="Трёхмерное облако профилей пассажиров"></canvas>
+              <div class="ambient-grid"></div>
+              <div class="scene-label">
+                <span class="eyebrow">RESEARCH FIELD / 001</span>
+                <h1>Обсерватория <em>аномалий</em></h1>
+                <p>Поведенческое пространство пассажиров · синтетические данные</p>
+              </div>
+              <div class="viewport-tag">
+                LIVE 3D <span class="blink">◉</span> <span id="visible-count">—</span> OBJECTS
+              </div>
+              <div class="axis-label">
+                <b id="axis-mode-label">Вклады G2–G4 · 0–1</b
+                ><span><i id="legend-x" class="axis-x">X · G2</i></span
+                ><span><i id="legend-y" class="axis-y">Y · G3</i></span
+                ><span><i id="legend-z" class="axis-z">Z · G4</i></span
+                ><small>Цвет точки · target</small><small id="position-count"></small>
+              </div>
+              <div class="scene-toolbar">
+                <div class="group-label">ПРОСТРАНСТВО</div>
+                <div class="segmented">
+                  <button class="mode active" data-mode="contributions">Поведение</button
+                  ><button class="mode" data-mode="flags">Флаги</button>
+                </div>
+                <div class="group-label">ПОРОГ АНОМАЛЬНОСТИ <b id="threshold-num">0.00</b></div>
+                <input
+                  type="range"
+                  id="threshold"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value="0"
+                  aria-label="Минимальная аномальность"
+                />
+                <div class="threshold-labels"><span>0.00</span><span>1.00</span></div>
+                <div class="combination-readout">
+                  <b id="combination-level">Низкая выраженность</b
+                  ><small id="combination-subtitle">Условно: 1–2 совпадающих сигнала</small>
+                </div>
+                <button class="toolbar-btn" id="isolate-btn">✦ Выделить аномалии</button
+                ><button class="toolbar-btn muted" id="reset-btn">↺ Сбросить вид</button>
+              </div>
+              <div class="scene-legend">
+                <span><i class="dot cyan"></i> Низкая</span
+                ><span><i class="dot amber"></i> Средняя</span
+                ><span><i class="dot red"></i> Высокая</span>
+              </div>
+              <div class="scene-help">
+                ПЕРЕТАСКИВАНИЕ — ВРАЩЕНИЕ <span>·</span> КОЛЕСО — МАСШТАБ <span>·</span> КЛИК —
+                ВЫБОР
+              </div>
+              <div class="loading" id="loading">
+                <div class="loading-orbit">✳</div>
+                <strong>INITIALIZING OBSERVATORY</strong
+                ><small id="loading-text">Загрузка данных…</small>
+                <div class="loading-track"><div id="loading-bar"></div></div>
+              </div>
+            </div>
+          </section>
+          <section class="view" id="ranking-view">
+            <div class="subpage">
+              <div class="eyebrow">ANALYTICS / 002</div>
+              <h1>Рейтинг аномалий</h1>
+              <p class="subtitle">
+                Профили с наиболее высокими значениями anomaly_score. Это отклонения модели, а не
+                доказательство правонарушений.
+              </p>
+              <div class="rank-actions">
+                <input id="rank-search" placeholder="Поиск по ID пассажира…" /><span
+                  id="ranking-total"
+                ></span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>№</th>
+                      <th>ПАССАЖИР</th>
+                      <th>КЛАСТЕР</th>
+                      <th>ПЕРЕЛЁТЫ</th>
+                      <th>ОЦЕНКА АНОМАЛИИ</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="ranking-body"></tbody>
+                </table>
+              </div>
+              <div class="pager">
+                <button id="prev-page">← Назад</button><span id="page-indicator"></span
+                ><button id="next-page">Далее →</button>
+              </div>
+            </div>
+          </section>
+          <section class="view" id="chronicle-view">
+            <div class="subpage">
+              <div class="eyebrow">TEMPORAL ANALYSIS / 003</div>
+              <h1>Хроника перелётов</h1>
+              <p class="subtitle">
+                Выберите пассажира в 3D-сцене или в рейтинге. История подгружается из отдельного
+                файла событий.
+              </p>
+              <div id="chronicle-content" class="empty-state">
+                <div class="empty-icon">▤</div>
+                <h3>Пассажир не выбран</h3>
+                <p>Откройте профиль, чтобы исследовать историю его перемещений.</p>
+                <button class="action" id="chronicle-go">Открыть обсерваторию →</button>
+              </div>
+            </div>
+          </section>
+          <section class="view" id="data-view">
+            <div class="subpage">
+              <div class="eyebrow">DATA TERMINAL / 004</div>
+              <h1>Терминал данных</h1>
+              <p class="subtitle">
+                Приложение читает локальные CSV без отправки данных на сервер. CSV профилей и
+                событий загружаются независимо.
+              </p>
+              <div class="data-cards">
+                <div class="data-card">
+                  <div class="file-icon">▦</div>
+                  <h3>Профили пассажиров</h3>
+                  <p>Каждая строка — один профиль, одна точка в 3D.</p>
+                  <div class="mono">person_id, behavior_x, behavior_y, behavior_z, target</div>
+                  <button id="data-passenger-btn" class="action">Загрузить passengers.csv</button>
+                </div>
+                <div class="data-card">
+                  <div class="file-icon">▤</div>
+                  <h3>История событий</h3>
+                  <p>Отдельная таблица перелётов, связанная по passenger_id.</p>
+                  <div class="mono">event_id, passenger_id, flight_date, origin, destination</div>
+                  <button id="data-flights-btn" class="action">Загрузить flights.csv</button>
+                </div>
+              </div>
+              <div class="info-box">
+                <b>Контракт интеграции</b>
+                <p>
+                  prepare_behavior.py объединяет users_scored и metrics.parquet по person_id. X:
+                  доля перелётов с попутчиками; Y: связность поездок; Z: месячный всплеск. Цвет —
+                  исходный target. Профили без полных координат сохраняются в CSV, но не рисуются.
+                  Старый CSV со вкладами также поддерживается, но даёт прежнюю разреженную
+                  геометрию.
+                </p>
+              </div>
+              <div class="file-summary" id="file-summary">
+                Используется встроенный демонстрационный набор данных.
+              </div>
+            </div>
+          </section>
+        </main>
+        <aside class="inspector">
+          <div class="inspector-top">
+            <div>
+              <span class="eyebrow">OBJECT INSPECTOR</span>
+              <h2 id="inspector-title">Профиль не выбран</h2>
+            </div>
+            <button id="close-selection" class="x-btn" title="Снять выбор">×</button>
+          </div>
+          <div id="inspector-empty" class="inspector-empty">
+            <div class="target-symbol">◎</div>
+            <strong>ОЖИДАНИЕ СИГНАЛА</strong>
+            <p>Нажмите на точку в пространстве или выберите запись в рейтинге.</p>
+          </div>
+          <div id="inspector-profile" hidden>
+            <div class="profile-status">
+              <span class="eyebrow">ANOMALY LEVEL</span
+              ><span class="status-pill" id="severity-label">—</span>
+            </div>
+            <div class="score-number"><strong id="score-val">—</strong><span>/ 1.00</span></div>
+            <div class="score-track"><div id="score-fill"></div></div>
+            <div class="meta-grid">
+              <div><small>КЛАСТЕР</small><strong id="profile-cluster">—</strong></div>
+              <div><small>ПЕРЕЛЁТЫ</small><strong id="profile-flights">—</strong></div>
+              <div><small>НАПРАВЛЕНИЯ</small><strong id="profile-dests">—</strong></div>
+              <div><small>УВЕРЕННОСТЬ*</small><strong id="profile-confidence">—</strong></div>
+            </div>
+            <div class="inspector-block">
+              <span class="eyebrow">ПЕРИОД НАБЛЮДЕНИЯ</span>
+              <p id="profile-dates">—</p>
+            </div>
+            <div class="inspector-block">
+              <span class="eyebrow">ОСНОВНОЙ ФАКТОР*</span>
+              <p id="profile-reason">—</p>
+            </div>
+            <div class="inspector-block">
+              <span class="eyebrow">СОЧЕТАНИЕ СИГНАЛОВ</span>
+              <p id="profile-combination">—</p>
+            </div>
+            <div class="inspector-block">
+              <span class="eyebrow">КООРДИНАТЫ</span>
+              <p id="profile-coords" class="mono">—</p>
+            </div>
+            <div id="coincident" class="inspector-block"></div>
+            <button class="action full" id="open-history">▤ Открыть историю перелётов →</button
+            ><button class="action outline full" id="copy-profile">⧉ Скопировать ID</button>
+            <p class="inspector-disclaimer">
+              * Дополнительные поля демонстрационного датасета. Не являются подтверждёнными выводами
+              ML.
+            </p>
+          </div>
+          <div class="inspector-footer"><span class="pulse"></span> DATA LINK ACTIVE</div>
+        </aside>
+      </div>
+      <footer class="statusbar">
+        <span>◈ PARALLAX RESEARCH CONSOLE</span><span id="status-message">READY</span
+        ><span>100% LOCAL PROCESSING <span class="separator">/</span> CANVAS RENDERER</span>
+      </footer>
+    </div>
+    <input type="file" accept=".csv,text/csv" id="passenger-file" hidden /><input
+      type="file"
+      accept=".csv,text/csv"
+      id="flights-file"
+      hidden
+    />
+    <div class="toast" id="toast" role="status"></div>
+    <script src="app.js?v=0.1.9" defer></script>
+  </body>
+</html>
